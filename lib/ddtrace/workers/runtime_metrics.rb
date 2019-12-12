@@ -1,3 +1,5 @@
+require 'ddtrace/runtime/metrics'
+
 require 'ddtrace/worker'
 require 'ddtrace/workers/async'
 require 'ddtrace/workers/loop'
@@ -14,8 +16,8 @@ module Datadog
       attr_reader \
         :metrics
 
-      def initialize(metrics, options = {})
-        @metrics = metrics
+      def initialize(metrics = nil, options = {})
+        @metrics = metrics || Runtime::Metrics.new
 
         # Workers::Async::Thread settings
         self.fork_policy = options.fetch(:fork_policy, Workers::Async::Thread::FORK_POLICY_STOP)
@@ -27,7 +29,6 @@ module Datadog
       end
 
       def perform
-        return unless Datadog.configuration.runtime_metrics_enabled && metrics
         metrics.flush
         true
       end
